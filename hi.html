@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Juice Apocalypse — Order Lemonade</title>
+  <style>
+    :root{
+      --bg:#f7f9fb;
+      --card:#ffffff;
+      --accent:#ffb703;
+      --muted:#6b7280;
+      --shadow: 0 6px 18px rgba(16,24,40,0.08);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,#f7fbff 0%, var(--bg) 60%);
+      color:#0f172a;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:28px;
+    }
+
+    .container{
+      max-width:1100px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:24px;
+      align-items:start;
+    }
+
+    header{
+      grid-column: 1 / -1;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:8px;
+    }
+
+    h1{margin:0;font-size:1.45rem;display:flex;gap:10px;align-items:center}
+    .logo{
+      background:linear-gradient(90deg,#ffb703,#fb8500);
+      color:white;padding:8px 12px;border-radius:10px;font-weight:700;
+      box-shadow:var(--shadow);
+    }
+    p.lead{margin:0;color:var(--muted);font-size:0.95rem}
+
+    /* product list */
+    .store{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:18px;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:14px;
+      padding:16px;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .product-media{
+      height:150px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(180deg, #fff7e6 0%, #fff 100%);
+      border:1px solid rgba(0,0,0,0.03);
+    }
+    .product-media img{max-width:100%;height:100%;object-fit:cover}
+
+    .product-title{font-weight:700;margin:0}
+    .product-desc{margin:0;color:var(--muted);font-size:0.92rem}
+    .price-qty{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .price{font-weight:800;color:#0f172a}
+    button.add{
+      background:var(--accent);
+      border:none;color:#072c2e;padding:8px 12px;border-radius:8px;font-weight:700;
+      cursor:pointer;box-shadow:0 6px 14px rgba(251,133,0,0.18);
+    }
+    button.add:active{transform:translateY(1px)}
+
+    /* cart */
+    .cart{
+      background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);
+      position:sticky;top:24px;height:fit-content;
+    }
+    .cart h2{margin:0 0 8px 0}
+    .cart-empty{color:var(--muted);font-size:0.95rem;padding:12px;border-radius:8px;background:#fbfbfc}
+    .cart-list{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+    .cart-item{display:flex;gap:10px;align-items:center}
+    .cart-item img{width:56px;height:56px;border-radius:8px;object-fit:cover}
+    .ci-title{font-weight:700}
+    .ci-meta{color:var(--muted);font-size:0.9rem}
+    .qty-controls{display:flex;align-items:center;gap:8px}
+    .qty-controls button{width:28px;height:28px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:white;cursor:pointer}
+    .checkout{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+    .checkout button.place{
+      background:#0f172a;color:white;border:none;padding:10px;border-radius:10px;font-weight:700;cursor:pointer;
+    }
+
+    .note{font-size:0.9rem;color:var(--muted)}
+
+    /* modal */
+    .modal-root{
+      position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(rgba(3,7,18,0.4),rgba(3,7,18,0.2));
+      z-index:60;padding:20px;
+    }
+    .modal{
+      background:var(--card);border-radius:12px;padding:18px;max-width:540px;width:100%;box-shadow:0 16px 40px rgba(2,6,23,0.2)
+    }
+    .order-success{background:linear-gradient(90deg,#ecfccb,#bbf7d0);padding:12px;border-radius:8px;color:#064e3b;font-weight:700}
+
+    footer{grid-column:1 / -1;margin-top:18px;color:var(--muted);font-size:0.9rem;text-align:center}
+
+    /* responsive */
+    @media (max-width:960px){
+      .container{grid-template-columns:1fr; padding:0 6px}
+      .cart{position:relative;top:0}
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1><span class="logo">Juice Apocalypse</span> Lemonade Stand</h1>
+        <p class="lead">Fresh lemonade — order for pickup or delivery (mock checkout).</p>
+      </div>
+      <div class="note">Cart updates saved in your browser.</div>
+    </header>
+
+    <main>
+      <section class="store" id="store">
+        <!-- product cards inserted via JS -->
+      </section>
+    </main>
+
+    <aside class="cart" aria-labelledby="cart-title">
+      <h2 id="cart-title">Your Cart</h2>
+      <div id="cart-content">
+        <div class="cart-empty">No items yet — add a lemonade to start.</div>
+      </div>
+
+      <div class="checkout">
+        <div style="display:flex;gap:8px;flex-direction:column">
+          <label class="note">Name (for pickup):</label>
+          <input id="cust-name" placeholder="e.g., Alex" style="padding:8px;border-radius:8px;border:1px solid #e6e9ee"/>
+        </div>
+        <div style="display:flex;gap:8px">
+          <input id="cust-phone" placeholder="Phone or note (optional)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #e6e9ee"/>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+          <div class="note">Total: <strong id="cart-total">$0.00</strong></div>
+          <button class="place" id="place-order" title="Place order (mock)">Place order</button>
+        </div>
+
+        <div style="display:flex;justify-content:center;margin-top:6px">
+          <button id="clear-cart" style="background:#fff;border:1px solid #ddd;padding:8px;border-radius:8px;cursor:pointer">Clear</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="modal-root" id="modal-root" role="dialog" aria-modal="true">
+      <div class="modal" id="modal">
+        <!-- filled with JS -->
+      </div>
+    </div>
+
+    <footer>
+      Made with love — 🍋 Lemonade only for now. To add more juices, edit the `products` array in the script.
+    </footer>
+  </div>
+
+  <script>
+    // --- Simple Juice Store App (Lemonade only for now) ---
+    const products = [
+      {
+        id: 'lemonade-1',
+        title: 'Classic Lemonade',
+        price: 3.50,
+        desc: 'Fresh squeezed lemons, cane sugar, chilled. 12oz.',
+        img: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400"><rect fill="%23fff7e6" width="100%" height="100%"/><g transform="translate(80 25)"><circle cx="120" cy="120" r="100" fill="%23ffd166"/><rect x="85" y="160" width="70" height="120" rx="12" fill="%23ffe8b3"/><rect x="135" y="120" width="24" height="60" rx="6" fill="%23fff1cc"/></g></svg>',
+      }
+    ];
+
+    // util
+    const q = sel => document.querySelector(sel);
+    const $store = q('#store');
+    const $cartContent = q('#cart-content');
+    const $cartTotal = q('#cart-total');
+    const $modalRoot = q('#modal-root');
+    const $modal = q('#modal');
+
+    // cart state persisted in localStorage
+    const CART_KEY = 'juice_cart_v1';
+    let cart = JSON.parse(localStorage.getItem(CART_KEY) || '{}');
+
+    function saveCart(){
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      renderCart();
+    }
+
+    // render product cards
+    function renderStore(){
+      $store.innerHTML = '';
+      products.forEach(p => {
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="product-media"><img alt="${p.title}" src="${p.img}"></div>
+          <div>
+            <h3 class="product-title">${p.title}</h3>
+            <p class="product-desc">${p.desc}</p>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto">
+            <div>
+              <div class="price">$${p.price.toFixed(2)}</div>
+            </div>
+            <div>
+              <button class="add" data-id="${p.id}">Add to cart</button>
+            </div>
+          </div>
+        `;
+        $store.appendChild(card);
+      });
+
+      // attach listeners to add buttons
+      $store.querySelectorAll('button.add').forEach(btn=>{
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.dataset.id;
+          addToCart(id, 1);
+        });
+      });
+    }
+
+    function addToCart(id, qty=1){
+      if(!cart[id]) cart[id] = { qty:0 };
+      cart[id].qty += qty;
+      saveCart();
+      flashMiniModal('Added to cart 🎉');
+    }
+
+    function removeFromCart(id){
+      delete cart[id];
+      saveCart();
+    }
+
+    function changeQty(id, delta){
+      if(!cart[id]) return;
+      cart[id].qty += delta;
+      if(cart[id].qty <= 0) removeFromCart(id);
+      saveCart();
+    }
+
+    function computeTotal(){
+      let total = 0;
+      for(const id in cart){
+        const p = products.find(x=>x.id===id);
+        if(p) total += p.price * cart[id].qty;
+      }
+      return total;
+    }
+
+    function renderCart(){
+      // empty?
+      const ids = Object.keys(cart);
+      if(ids.length === 0){
+        $cartContent.innerHTML = '<div class="cart-empty">No items yet — add a lemonade to start.</div>';
+        $cartTotal.textContent = '$0.00';
+        return;
+      }
+
+      const list = document.createElement('div');
+      list.className = 'cart-list';
+
+      ids.forEach(id=>{
+        const item = cart[id];
+        const p = products.find(x=>x.id===id);
+        if(!p) return;
+        const el = document.createElement('div');
+        el.className = 'cart-item';
+        el.innerHTML = `
+          <img src="${p.img}" alt="${p.title}">
+          <div style="flex:1">
+            <div class="ci-title">${p.title}</div>
+            <div class="ci-meta">$${p.price.toFixed(2)} • <span id="qty-${id}">Qty ${item.qty}</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            <div class="qty-controls">
+              <button class="dec" data-id="${id}">–</button>
+              <div style="min-width:28px;text-align:center">${item.qty}</div>
+              <button class="inc" data-id="${id}">+</button>
+            </div>
+            <button class="remove" data-id="${id}" style="background:transparent;border:none;color:#ef4444;cursor:pointer">Remove</button>
+          </div>
+        `;
+        list.appendChild(el);
+      });
+
+      $cartContent.innerHTML = '';
+      $cartContent.appendChild(list);
+
+      // attach events
+      $cartContent.querySelectorAll('button.inc').forEach(b=>b.addEventListener('click', e=>{
+        changeQty(e.currentTarget.dataset.id, +1);
+      }));
+      $cartContent.querySelectorAll('button.dec').forEach(b=>b.addEventListener('click', e=>{
+        changeQty(e.currentTarget.dataset.id, -1);
+      }));
+      $cartContent.querySelectorAll('button.remove').forEach(b=>b.addEventListener('click', e=>{
+        removeFromCart(e.currentTarget.dataset.id);
+      }));
+
+      $cartTotal.textContent = '$' + computeTotal().toFixed(2);
+    }
+
+    // quick modal for messages
+    function flashMiniModal(message, timeout=1200){
+      $modalRoot.style.display = 'flex';
+      $modal.innerHTML = `<div style="font-weight:700;padding:12px">${message}</div>`;
+      setTimeout(()=>{ $modalRoot.style.display='none'; }, timeout);
+    }
+
+    // full checkout flow (mock)
+    q('#place-order').addEventListener('click', ()=>{
+      const ids = Object.keys(cart);
+      if(ids.length === 0){
+        flashMiniModal('Your cart is empty — add something first.');
+        return;
+      }
+      const name = q('#cust-name').value.trim() || 'Customer';
+      const phone = q('#cust-phone').value.trim();
+      const total = computeTotal().toFixed(2);
+      const orderNumber = 'JA' + Date.now().toString().slice(-6);
+
+      // show confirmation modal
+      $modalRoot.style.display = 'flex';
+      $modal.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="order-success">Order placed — thank you, ${escapeHtml(name)}!</div>
+          <div><strong>Order #:</strong> ${orderNumber}</div>
+          <div><strong>Total:</strong> $${total}</div>
+          <div style="color:var(--muted)"><strong>Items:</strong></div>
+          <div>
+            ${ids.map(id=>{
+              const p = products.find(x=>x.id===id);
+              return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #f1f5f9">
+                <div>${p.title} x ${cart[id].qty}</div><div>$${(p.price*cart[id].qty).toFixed(2)}</div>
+              </div>`;
+            }).join('')}
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+            <button id="modal-close" style="padding:8px 10px;border-radius:8px;border:1px solid #e6e9ee;background:white;cursor:pointer">Close</button>
+            <button id="modal-done" style="padding:8px 10px;border-radius:8px;border:none;background:var(--accent);cursor:pointer">Finish</button>
+          </div>
+        </div>
+      `;
+
+      // (simulate saving order to localStorage order history)
+      const orders = JSON.parse(localStorage.getItem('juice_orders_v1')||'[]');
+      orders.push({
+        orderNumber, name, phone, total: parseFloat(total), items: JSON.parse(JSON.stringify(cart)), date: new Date().toISOString()
+      });
+      localStorage.setItem('juice_orders_v1', JSON.stringify(orders));
+
+      // clear cart
+      cart = {};
+      saveCart();
+
+      // attach modal buttons
+      q('#modal-close').addEventListener('click', ()=> $modalRoot.style.display='none');
+      q('#modal-done').addEventListener('click', ()=> $modalRoot.style.display='none');
+    });
+
+    q('#clear-cart').addEventListener('click', ()=> {
+      if(confirm('Clear your cart?')){ cart={}; saveCart(); }
+    });
+
+    // escape helper to avoid injection in modal
+    function escapeHtml(s){
+      return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+    }
+
+    // init
+    renderStore();
+    renderCart();
+
+    // close modal on outside click
+    $modalRoot.addEventListener('click', (e)=>{
+      if(e.target === $modalRoot) $modalRoot.style.display = 'none';
+    });
+
+  </script>
+</body>
+</html>
